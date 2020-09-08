@@ -16,7 +16,6 @@
     // TODO: Confirm at least the following symbols
     // [BGN] Bulgaria
     // [HRK] Croatia
-    // [NOK] Norway
     // [PLN] Poland
     // [RON] Romania
     // [SGD] Singapore
@@ -118,10 +117,16 @@
 
     let total = 0;
 
-    const container = document.createElement("div");
-    container.id = "totalAmount";
-    container.style.cssText = "color:gray";
-    container.innerHTML = "¥0";
+    const counterDiv = document.createElement("div");
+    counterDiv.id = "totalAmount";
+    counterDiv.style.cssText = "color:gray";
+    counterDiv.innerHTML = "¥0";
+
+    const translationDiv = document.createElement("div");
+    translationDiv.id = "translation";
+    translationDiv.style.fontSize = "1.5em";
+    translationDiv.style.padding = "10px";
+    translationDiv.style.background = "#eee";
 
     // Web components are loaded asynchronously with Javascript but there appears to be no
     // "finished loading" event to listen to for the elements we need to build on.
@@ -135,8 +140,11 @@
 
         clearInterval(loadguard);
 
+        const primary = document.getElementById("primary-inner");
+        primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
+
         const sidebar = document.getElementById("secondary");
-        sidebar.insertBefore(container, sidebar.firstChild);
+        sidebar.insertBefore(counterDiv, sidebar.firstChild);
 
         const callback = function(mutationsList, observer) {
             mutationsList.forEach((mutation) => {mutation.addedNodes.forEach((node) => {
@@ -144,7 +152,16 @@
                 if (purchaseNode != null) {
                     const jpy = toYen(purchaseNode.textContent);
                     total = total + jpy;
-                    container.innerHTML = "¥" + Math.trunc(total);
+                    counterDiv.innerHTML = "¥" + Math.trunc(total);
+                }
+                const messageNode = node.querySelector("#message"); // See footnote 2
+                if (messageNode != null) {
+                    // TODO: Check if the message matches TL formatting
+                    const text = messageNode.textContent;
+                    const match = /^[\[\(]EN[\]\)]/i.test(text);
+                    if(match) {
+                        translationDiv.textContent = messageNode.textContent;
+                    }
                 }
             });});
         };
