@@ -119,8 +119,8 @@
 
     const counterDiv = document.createElement("div");
     counterDiv.id = "totalAmount";
-    counterDiv.style.cssText = "color:gray";
-    counterDiv.innerHTML = "¥0";
+    counterDiv.style.color = "gray";
+    counterDiv.innerHTML = "¥0 (¥0)";
 
     const translationDiv = document.createElement("div");
     translationDiv.id = "translation";
@@ -131,6 +131,7 @@
     // Web components are loaded asynchronously with Javascript but there appears to be no
     // "finished loading" event to listen to for the elements we need to build on.
     // Consequently, we have to keep polling for them until they are loaded.
+    // TODO: Monitor for elements being removed and re-insterted due to responsive layout changes
     const loadguard = setInterval(function() {
         const frame = document.getElementById("chatframe");
         if(!frame) {return;}
@@ -152,15 +153,20 @@
                 if (purchaseNode != null) {
                     const jpy = toYen(purchaseNode.textContent);
                     total = total + jpy;
-                    counterDiv.innerHTML = "¥" + Math.trunc(total);
+                    counterDiv.innerHTML = "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
                 }
                 const messageNode = node.querySelector("#message"); // See footnote 2
                 if (messageNode != null) {
-                    // TODO: Check if the message matches TL formatting
                     const text = messageNode.textContent;
-                    const match = /^[\[\(]EN[\]\)]/i.test(text);
+                    const match = /^[\[\(]ENG?[\]\)]/i.test(text);
+                    if(!match) match = /^(英訳\/)?ENG?:/i.test(text);
                     if(match) {
-                        translationDiv.textContent = messageNode.textContent;
+                        const paragraph = document.createElement("p");
+                        paragraph.textContent = messageNode.textContent;
+                        translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
+                        if(translationDiv.childNodes.length > 3) {
+                            translationDiv.removeChild(translationDiv.lastChild);
+                        }
                     }
                 }
             });});
