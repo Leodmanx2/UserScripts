@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.2
+// @version      0.3
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -157,6 +157,16 @@
                 }
                 const messageNode = node.querySelector("#message"); // See footnote 2
                 if (messageNode != null) {
+                    // Replace emoji images
+                    let emojiList = messageNode.getElementsByClassName("emoji");
+                    let index = emojiList.length - 1;
+                    while(index >= 0) {
+                        const emoji = emojiList.item(index);
+                        if(emoji.src.endsWith(".svg")) {
+                            emoji.replaceWith(emoji.alt);
+                        }
+                        --index;
+                    }
                     // Extract translations
                     const text = messageNode.textContent;
                     let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
