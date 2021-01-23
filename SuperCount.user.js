@@ -127,6 +127,8 @@
     translationDiv.style.fontSize = "1.5em";
     translationDiv.style.padding = "10px";
     translationDiv.style.background = "#eee";
+    translationDiv.style.overflowY = "scroll";
+    translationDiv.style.height = "10ex";
 
     // Web components are loaded asynchronously with Javascript but there appears to be no
     // "finished loading" event to listen to for the elements we need to build on.
@@ -174,9 +176,6 @@
                         const paragraph = document.createElement("p");
                         paragraph.textContent = messageNode.textContent;
                         translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
-                        if(translationDiv.childNodes.length > 10) {
-                            translationDiv.removeChild(translationDiv.lastChild);
-                        }
                     }
                 }
             });});
