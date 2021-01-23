@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.4
+// @version      0.3
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -122,6 +122,12 @@
     counterDiv.style.color = "gray";
     counterDiv.innerHTML = "¥0 (¥0)";
 
+    const translationDiv = document.createElement("div");
+    translationDiv.id = "translation";
+    translationDiv.style.fontSize = "1.5em";
+    translationDiv.style.padding = "10px";
+    translationDiv.style.background = "#eee";
+
     // Web components are loaded asynchronously with Javascript but there appears to be no
     // "finished loading" event to listen to for the elements we need to build on.
     // Consequently, we have to keep polling for them until they are loaded.
@@ -135,6 +141,9 @@
 
         clearInterval(loadguard);
 
+        const primary = document.getElementById("primary-inner");
+        primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
+
         const sidebar = document.getElementById("secondary");
         sidebar.insertBefore(counterDiv, sidebar.firstChild);
 
@@ -146,15 +155,29 @@
                     total = total + jpy;
                     counterDiv.innerHTML = "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
                 }
-                // Replace emoji images
-                let emojiList = node.getElementsByClassName("emoji");
-                let index = emojiList.length - 1;
-                while(index >= 0) {
-                    const emoji = emojiList.item(index);
-                    if(emoji.src.endsWith(".svg")) {
-                        emoji.replaceWith(emoji.alt);
+                const messageNode = node.querySelector("#message"); // See footnote 2
+                if (messageNode != null) {
+                    // Replace emoji images
+                    let emojiList = messageNode.getElementsByClassName("emoji");
+                    let index = emojiList.length - 1;
+                    while(index >= 0) {
+                        const emoji = emojiList.item(index);
+                        if(emoji.src.endsWith(".svg")) {
+                            emoji.replaceWith(emoji.alt);
+                        }
+                        --index;
                     }
-                    --index;
+                    // Extract translations
+                    const text = messageNode.textContent;
+                    let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
+                    if(match) {
+                        const paragraph = document.createElement("p");
+                        paragraph.textContent = messageNode.textContent;
+                        translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
+                        if(translationDiv.childNodes.length > 10) {
+                            translationDiv.removeChild(translationDiv.lastChild);
+                        }
+                    }
                 }
             });});
         };
