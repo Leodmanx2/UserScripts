@@ -14,12 +14,11 @@
 // YouTube does a lot of processing and messages may appear in the chat about
 // a second slower than the client received them. Not a big deal.
 // This script mimics LiveTL by intercepting YouTube's API requests and
-// subsequent responses. The primary disadvantage of this method is that it
-// may conflict with other extensions like LiveTL that modify fetch behaviour.
+// subsequent responses.
 
-// SuperCount continues to use the chat box method in part because of this, but
-// also that we still have to observe the chatbox to undo YouTube's dumb SVG
-// emoji replacement that causes chat to lag and mixing methods feels wasteful.
+// SuperCount continues to use the chat box method in part because we still
+// have to observe the chatbox to undo YouTube's dumb SVG emoji replacement
+// that causes chat to lag and mixing methods feels wasteful.
 
 // Also, isn't it kind of scary how easy it is to intercept all a user's
 // traffic and do whatever we want with it?
