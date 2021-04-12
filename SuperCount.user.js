@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.3
+// @version      0.4
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -128,7 +128,7 @@
     translationDiv.style.padding = "10px";
     translationDiv.style.background = "#eee";
     translationDiv.style.overflowY = "scroll";
-    translationDiv.style.height = "10ex";
+    translationDiv.style.height = "20ex";
 
     // Web components are loaded asynchronously with Javascript but there appears to be no
     // "finished loading" event to listen to for the elements we need to build on.
@@ -170,11 +170,13 @@
                         --index;
                     }
                     // Extract translations
+                    const author = node.querySelector("#author-name");
+                    const isModerator = author.classList.contains("moderator");
                     const text = messageNode.textContent;
                     let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
-                    if(match) {
+                    if(match || isModerator) {
                         const paragraph = document.createElement("p");
-                        paragraph.textContent = messageNode.textContent;
+                        paragraph.innerHTML =  messageNode.innerHTML + " <span style=\"color:grey;font-size:0.75em\">(" + author.innerHTML + ")</span>";
                         translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
                     }
                 }
