@@ -305,10 +305,11 @@
                         // Extract translations
                         const author = node.querySelector("#author-name");
                         const isModerator = author.classList.contains("moderator");
+                        const isOwner = author.classList.contains("owner");
                         const isSpecial = specialNames.has(author.textContent);
                         const text = messageNode.textContent;
                         let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
-                        if(match || isModerator || isSpecial) {
+                        if(match || isModerator || isOwner || isSpecial) {
                             const paragraph = document.createElement("p");
                             paragraph.innerHTML = messageNode.innerHTML + " <span style=\"color:grey;font-size:0.75em\">(" + author.innerHTML + ")</span>";
                             translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
