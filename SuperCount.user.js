@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.5
+// @version      0.6
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -256,6 +256,9 @@
     const counterDiv = document.createElement("div");
     counterDiv.id = "totalAmount";
     counterDiv.style.color = "gray";
+    counterDiv.style.background = "#fff";
+    counterDiv.style.paddingTop = "5px";
+    counterDiv.style.paddingLeft = "5px";
     counterDiv.innerHTML = "¥0 (¥0)";
 
     const translationDiv = document.createElement("div");
@@ -266,11 +269,49 @@
     translationDiv.style.overflowY = "scroll";
     translationDiv.style.height = "20ex";
 
-    // Web components are loaded asynchronously with Javascript but there appears to be no
-    // "finished loading" event to listen to for the elements we need to build on.
-    // Consequently, we have to keep polling for them until they are loaded.
-    const loadguard = setInterval(function() {
-        const messages = document.getElementById("chatframe")?.contentDocument?.querySelector("div#items.yt-live-chat-item-list-renderer");
+    const callback = function(mutationsList, observer) {
+        mutationsList.forEach((mutation) => {
+            mutation.addedNodes.forEach((node) => {
+                const purchaseNode = node.querySelector("#purchase-amount"); // See footnote 1
+                if (purchaseNode != null) {
+                    const jpy = toYen(purchaseNode.textContent);
+                    total = total + jpy;
+                    counterDiv.innerHTML = "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
+                }
+                const messageNode = node.querySelector("#message"); // See footnote 1
+                if (messageNode != null) {
+                    // Replace emoji images
+                    let emojiList = messageNode.getElementsByClassName("emoji");
+                    let index = emojiList.length - 1;
+                    while(index >= 0) {
+                        const emoji = emojiList.item(index);
+                        if(emoji.src.endsWith(".svg")) {
+                            emoji.replaceWith(emoji.alt);
+                        }
+                        --index;
+                    }
+                    // Extract translations
+                    const author = node.querySelector("#author-name");
+                    const isModerator = author.classList.contains("moderator");
+                    const isOwner = author.classList.contains("owner");
+                    const isSpecial = specialNames.has(author.textContent);
+                    const text = messageNode.textContent;
+                    let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
+                    if(match || isModerator || isOwner || isSpecial) {
+                        const paragraph = document.createElement("p");
+                        paragraph.innerHTML = messageNode.innerHTML + " <span style=\"color:grey;font-size:0.75em\">(" + author.innerHTML + ")</span>";
+                        translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
+                    }
+                }
+            });
+        });
+    };
+
+    const observer = new MutationObserver(callback);
+
+    const load = function() {
+        const chatframe = document.getElementById("chatframe");
+        let messages = chatframe?.contentDocument?.querySelector("div#items.yt-live-chat-item-list-renderer");
         if(!messages) {return;}
 
         clearInterval(loadguard);
@@ -278,50 +319,20 @@
         const primary = document.getElementById("primary-inner");
         primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
 
-        const sidebar = document.getElementById("secondary");
-        sidebar.insertBefore(counterDiv, sidebar.firstChild);
+        const chat = document.getElementById("chat");
+        chat.insertBefore(counterDiv, chat.firstChild);
 
-        const callback = function(mutationsList, observer) {
-            mutationsList.forEach((mutation) => {
-                mutation.addedNodes.forEach((node) => {
-                    const purchaseNode = node.querySelector("#purchase-amount"); // See footnote 1
-                    if (purchaseNode != null) {
-                        const jpy = toYen(purchaseNode.textContent);
-                        total = total + jpy;
-                        counterDiv.innerHTML = "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
-                    }
-                    const messageNode = node.querySelector("#message"); // See footnote 1
-                    if (messageNode != null) {
-                        // Replace emoji images
-                        let emojiList = messageNode.getElementsByClassName("emoji");
-                        let index = emojiList.length - 1;
-                        while(index >= 0) {
-                            const emoji = emojiList.item(index);
-                            if(emoji.src.endsWith(".svg")) {
-                                emoji.replaceWith(emoji.alt);
-                            }
-                            --index;
-                        }
-                        // Extract translations
-                        const author = node.querySelector("#author-name");
-                        const isModerator = author.classList.contains("moderator");
-                        const isOwner = author.classList.contains("owner");
-                        const isSpecial = specialNames.has(author.textContent);
-                        const text = messageNode.textContent;
-                        let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
-                        if(match || isModerator || isOwner || isSpecial) {
-                            const paragraph = document.createElement("p");
-                            paragraph.innerHTML = messageNode.innerHTML + " <span style=\"color:grey;font-size:0.75em\">(" + author.innerHTML + ")</span>";
-                            translationDiv.insertBefore(paragraph, translationDiv.firstElementChild);
-                        }
-                    }
-                });
-            });
-        };
-
-        const observer = new MutationObserver(callback);
         observer.observe(messages, {childList : true});
-    }, 100);
+        chatframe.addEventListener("load", function() {
+            messages = chatframe?.contentDocument?.querySelector("div#items.yt-live-chat-item-list-renderer");
+            observer.observe(messages, {childList : true});
+        });
+    }
+
+    // Web components are loaded asynchronously with Javascript but there appears to be no
+    // "finished loading" event to listen to for the elements we need to build on.
+    // Consequently, we have to keep polling for them until they are loaded.
+    const loadguard = setInterval(load, 100);
 })();
 
 // Footnotes -------------------------------------------------------------
