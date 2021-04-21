@@ -11,8 +11,8 @@
 (function() {
     "use strict";
 
-    // This is a map of three letter currency codes used by the exhange
-    // rate api to their corresponding symbols used by YouTube.
+    // This is a map of symbols used by YouTube to
+    // their corresponding three letter currency codes.
     // TODO: Confirm at least the following symbols
     // [BGN] Bulgaria
     // [HRK] Croatia
@@ -36,7 +36,7 @@
     symbolMap.set("NT$", "TWD");
     symbolMap.set("₩", "KRW");
 
-    // These are initial data that we may fall back on in case the api
+    // These are initial data that we may fall back on in case the API
     // does not offer an exchange rate or the request for new data fails.
     // These rates were obtained April 16, 2021 at 4:15 PM EST.
     const rates = new Map();
