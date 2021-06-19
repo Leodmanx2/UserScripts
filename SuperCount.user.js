@@ -214,6 +214,7 @@ rates.set("ZWL", 2.959219);
 
 const specialNames = new Set();
 specialNames.add("Watame TL [EN]");
+specialNames.add("El Leche");
 
 const setRate =
   function(key, value) {
