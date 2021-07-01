@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.6.1
+// @version      0.7
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -296,7 +296,9 @@ const callback = function(mutationsList, observer) {
 				const isOwner     = author.classList.contains("owner");
 				const isSpecial   = specialNames.has(author.textContent);
 				const text        = messageNode.textContent;
-				let match         = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
+				let match =
+				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):\-\} ]+/i.test(
+				    text);
 				if(match || isModerator || isOwner || isSpecial) {
 					const paragraph = document.createElement("p");
 					paragraph.innerHTML =
