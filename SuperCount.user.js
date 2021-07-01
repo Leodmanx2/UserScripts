@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.7
+// @version      0.8
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -304,7 +304,8 @@ const callback = function(mutationsList, observer) {
 					paragraph.innerHTML =
 					  messageNode.innerHTML +
 					  " <span style=\"color:grey;font-size:0.75em\">(" +
-					  author.innerHTML + ")</span>";
+					  author.innerHTML + " @ " + new Date().toLocaleTimeString() +
+					  ")</span>";
 					translationDiv.insertBefore(paragraph,
 					                            translationDiv.firstElementChild);
 				}
