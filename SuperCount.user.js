@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.8.1
+// @version      0.9
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
@@ -227,6 +227,29 @@ const setRate =
 	}
 }
 
+class SuperChat {
+	constructor(author, amount, content) {
+		this.author  = author;
+		this.amount  = amount;
+		this.content = content;
+	}
+
+	tsv() { return `${this.author}\t${this.amount}\t${this.content}`; }
+}
+
+const superchatSaveButton = document.createElement("button");
+superchatSaveButton.id    = "superchatSaveButon";
+superchatSaveButton.addEventListener("click", function() {
+	let text = "";
+	for(const sc of superchats) { text += sc.tsv() + "\n"; }
+	prompt(
+	  "Because this is a userscript, the following text must be manually copied into a file.",
+	  text);
+});
+superchatSaveButton.textContent = "Export Supas";
+
+const superchats = [];
+
 // Fetch latest exchange rates
 const request = new XMLHttpRequest();
 request.open("GET", "https://api.exchangerate.host/latest?base=JPY");
@@ -273,14 +296,6 @@ translationDiv.style.height     = "20ex";
 const callback = function(mutationsList, observer) {
 	mutationsList.forEach((mutation) => {
 		mutation.addedNodes.forEach((node) => {
-			const purchaseNode =
-			  node.querySelector("#purchase-amount"); // See footnote 1
-			if(purchaseNode != null) {
-				const jpy = toYen(purchaseNode.textContent);
-				total     = total + jpy;
-				counterDiv.innerHTML =
-				  "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
-			}
 			const messageNode = node.querySelector("#message"); // See footnote 1
 			if(messageNode != null) {
 				// Replace emoji images
@@ -292,7 +307,9 @@ const callback = function(mutationsList, observer) {
 					--index;
 				}
 				// Extract translations
-				const author      = node.querySelector("#author-name");
+				const author = node.querySelector("#author-name");
+				if(!author)
+					return; // System notices also use the #message ID. This is why ID duplication is bad.
 				const isModerator = author.classList.contains("moderator");
 				const isOwner     = author.classList.contains("owner");
 				const isSpecial   = specialNames.has(author.textContent);
@@ -309,6 +326,17 @@ const callback = function(mutationsList, observer) {
 					  ")</span>";
 					translationDiv.insertBefore(paragraph,
 					                            translationDiv.firstElementChild);
+				}
+				const purchaseNode =
+				  node.querySelector("#purchase-amount"); // See footnote 1
+				if(purchaseNode != null) {
+					const jpy = toYen(purchaseNode.textContent);
+					total     = total + jpy;
+					counterDiv.innerHTML =
+					  "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
+					// TODO: save SC list to file
+					superchats.push(
+					  new SuperChat(author.textContent, purchaseNode.textContent, text));
 				}
 			}
 		});
@@ -331,6 +359,7 @@ const load =
 
 	const chat = document.getElementById("chat");
 	chat.insertBefore(counterDiv, chat.firstChild);
+	chat.append(superchatSaveButton);
 
 	observer.observe(messages, {childList : true});
 	chatframe.addEventListener("load", function() {
