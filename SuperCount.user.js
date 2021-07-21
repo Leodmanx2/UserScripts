@@ -334,7 +334,6 @@ const callback = function(mutationsList, observer) {
 					total     = total + jpy;
 					counterDiv.innerHTML =
 					  "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
-					// TODO: save SC list to file
 					superchats.push(
 					  new SuperChat(author.textContent, purchaseNode.textContent, text));
 				}
