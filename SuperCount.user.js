@@ -1,11 +1,12 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.9
+// @version      0.10.0
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
 // @grant        none
+// @require      https://raw.githubusercontent.com/eligrey/FileSaver.js/master/src/FileSaver.js
 // ==/UserScript==
 
 (function() {
@@ -242,9 +243,8 @@ superchatSaveButton.id    = "superchatSaveButon";
 superchatSaveButton.addEventListener("click", function() {
 	let text = "";
 	for(const sc of superchats) { text += sc.tsv() + "\n"; }
-	prompt(
-	  "Because this is a userscript, the following text must be manually copied into a file.",
-	  text);
+	const blob = new Blob([ text ], {type : "text/plain;charset=utf-8"});
+	saveAs(blob, "superchats.tsv");
 });
 superchatSaveButton.textContent = "Export Supas";
 
