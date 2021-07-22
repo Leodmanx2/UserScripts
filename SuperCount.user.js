@@ -1,13 +1,21 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.0
+// @version      0.10.1
+// @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
 // @match        https://www.youtube.com/watch*
 // @grant        none
 // @require      https://raw.githubusercontent.com/eligrey/FileSaver.js/master/src/FileSaver.js
 // ==/UserScript==
+
+// jshint esversion: 11
+// jshint freeze: true
+// jshint latedef: true
+// jshint regexpu: true
+// jshint unused: true
+// jshint varstmt: true
 
 (function() {
 "use strict";
@@ -218,15 +226,14 @@ const specialNames = new Set();
 specialNames.add("Watame TL [EN]");
 specialNames.add("El Leche");
 
-const setRate =
-  function(key, value) {
+const setRate = function(key, value) {
 	const symbol = symbolMap.get(key);
 	if(symbol) {
 		rates.set(symbol, value);
 	} else {
 		rates.set(key, value);
 	}
-}
+};
 
 class SuperChat {
 	constructor(author, amount, content) {
@@ -238,6 +245,8 @@ class SuperChat {
 	tsv() { return `${this.author}\t${this.amount}\t${this.content}`; }
 }
 
+const superchats = [];
+
 const superchatSaveButton = document.createElement("button");
 superchatSaveButton.id    = "superchatSaveButon";
 superchatSaveButton.addEventListener("click", function() {
@@ -247,8 +256,6 @@ superchatSaveButton.addEventListener("click", function() {
 	saveAs(blob, "superchats.tsv");
 });
 superchatSaveButton.textContent = "Export Supas";
-
-const superchats = [];
 
 // Fetch latest exchange rates
 const request = new XMLHttpRequest();
@@ -264,9 +271,9 @@ request.send();
 // toYen parses the value of a string that looks like "C$1,000.10" and
 // returns its equivalent value in yen, or 0 if its value cannot be found.
 const toYen = function(text) {
-	const match  = text.match(/([^\d.,\s]+)+(.*)/);
+	const match  = text.match(/([^\d.,\s]+)+(.*)/u);
 	const symbol = match[1];
-	const value  = match[2].replace(/,/g, "");
+	const value  = match[2].replace(/,/gu, "");
 	const rate   = rates.get(symbol) || rates.get(symbolMap.get(symbol));
 	if(!rate) {
 		console.error("no rate for symbol " + symbol);
@@ -293,7 +300,7 @@ translationDiv.style.background = "#eee";
 translationDiv.style.overflowY  = "scroll";
 translationDiv.style.height     = "20ex";
 
-const callback = function(mutationsList, observer) {
+const callback = function(mutationsList) {
 	mutationsList.forEach((mutation) => {
 		mutation.addedNodes.forEach((node) => {
 			const messageNode = node.querySelector("#message"); // See footnote 1
@@ -315,7 +322,7 @@ const callback = function(mutationsList, observer) {
 				const isSpecial   = specialNames.has(author.textContent);
 				const text        = messageNode.textContent;
 				let match =
-				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):\-\} ]+/i.test(
+				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):-\} ]+/iu.test(
 				    text);
 				if(match || isModerator || isOwner || isSpecial) {
 					const paragraph = document.createElement("p");
@@ -344,8 +351,10 @@ const callback = function(mutationsList, observer) {
 
 const observer = new MutationObserver(callback);
 
-const load =
-  function() {
+// Web components are loaded asynchronously with Javascript but there appears to be no
+// "finished loading" event to listen to for the elements we need to build on.
+// Consequently, we have to keep polling for them until they are loaded.
+const loadguard = setInterval(function() {
 	const chatframe = document.getElementById("chatframe");
 	let messages    = chatframe?.contentDocument?.querySelector(
     "div#items.yt-live-chat-item-list-renderer");
@@ -366,12 +375,7 @@ const load =
 		  "div#items.yt-live-chat-item-list-renderer");
 		observer.observe(messages, {childList : true});
 	});
-}
-
-// Web components are loaded asynchronously with Javascript but there appears to be no
-// "finished loading" event to listen to for the elements we need to build on.
-// Consequently, we have to keep polling for them until they are loaded.
-const loadguard = setInterval(load, 100);
+}, 100);
 })();
 
 // Footnotes -------------------------------------------------------------
