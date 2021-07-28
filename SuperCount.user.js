@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.1
+// @version      0.10.2
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
@@ -322,7 +322,7 @@ const callback = function(mutationsList) {
 				const isSpecial   = specialNames.has(author.textContent);
 				const text        = messageNode.textContent;
 				let match =
-				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):-\} ]+/iu.test(
+				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):\} -]+/iu.test(
 				    text);
 				if(match || isModerator || isOwner || isSpecial) {
 					const paragraph = document.createElement("p");
