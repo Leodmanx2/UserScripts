@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.2
+// @version      0.10.3
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
@@ -46,6 +46,7 @@ symbolMap.set("NT$", "TWD");
 symbolMap.set("₩", "KRW");
 symbolMap.set("₪", "ILS");
 symbolMap.set("₱", "PHP");
+symbolMap.set("₹", "INR");
 
 // These are initial data that we may fall back on in case the API
 // does not offer an exchange rate or the request for new data fails.
