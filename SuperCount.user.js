@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.4
+// @version      0.10.5
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
@@ -224,8 +224,8 @@ rates.set("ZMW", 0.203861);
 rates.set("ZWL", 2.959219);
 
 const specialNames = new Set();
-specialNames.add("Watame TL [EN]");
-specialNames.add("El Leche");
+//specialNames.add("Watame TL [EN]");
+//specialNames.add("El Leche");
 
 const setRate = function(key, value) {
 	const symbol = symbolMap.get(key);
@@ -342,8 +342,9 @@ const callback = function(mutationsList) {
 					total     = total + jpy;
 					counterDiv.innerHTML =
 					  "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
-					superchats.push(
-					  new SuperChat(author.textContent, purchaseNode.textContent, text));
+					superchats.push(new SuperChat(author.textContent.trim(),
+					                              purchaseNode.textContent.trim(),
+					                              text.trim()));
 				}
 			}
 		});
