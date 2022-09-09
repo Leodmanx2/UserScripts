@@ -238,8 +238,8 @@ const setRate = function(key, value) {
 
 class SuperChat {
 	constructor(author, amount, content) {
-		this.author  = author;
-		this.amount  = amount;
+		this.author = author;
+		this.amount = amount;
 		this.content = content;
 	}
 
@@ -249,7 +249,7 @@ class SuperChat {
 const superchats = [];
 
 const superchatSaveButton = document.createElement("button");
-superchatSaveButton.id    = "superchatSaveButon";
+superchatSaveButton.id = "superchatSaveButon";
 superchatSaveButton.addEventListener("click", function() {
 	let text = "";
 	for(const sc of superchats) { text += sc.tsv() + "\n"; }
@@ -262,20 +262,20 @@ superchatSaveButton.textContent = "Export Supas";
 const request = new XMLHttpRequest();
 request.open("GET", "https://api.exchangerate.host/latest?base=JPY");
 request.responseType = "json";
-request.onload       = function() {
-  if(request.status != 200) { return; }
-  Object.keys(request.response.rates)
-    .forEach((key) => { setRate(key, request.response.rates[key]); });
+request.onload = function() {
+	if(request.status != 200) { return; }
+	Object.keys(request.response.rates)
+	  .forEach((key) => { setRate(key, request.response.rates[key]); });
 };
 request.send();
 
 // toYen parses the value of a string that looks like "C$1,000.10" and
 // returns its equivalent value in yen, or 0 if its value cannot be found.
 const toYen = function(text) {
-	const match  = text.match(/([^\d.,\s]+)+(.*)/u);
+	const match = text.match(/([^\d.,\s]+)+(.*)/u);
 	const symbol = match[1];
-	const value  = match[2].replace(/,/gu, "");
-	const rate   = rates.get(symbol) || rates.get(symbolMap.get(symbol));
+	const value = match[2].replace(/,/gu, "");
+	const rate = rates.get(symbol) || rates.get(symbolMap.get(symbol));
 	if(!rate) {
 		console.error("no rate for symbol " + symbol);
 		return 0;
@@ -285,21 +285,24 @@ const toYen = function(text) {
 
 let total = 0;
 
-const counterDiv             = document.createElement("div");
-counterDiv.id                = "totalAmount";
-counterDiv.style.color       = "gray";
-counterDiv.style.background  = "#fff";
-counterDiv.style.paddingTop  = "5px";
-counterDiv.style.paddingLeft = "5px";
-counterDiv.innerHTML         = "¥0 (¥0)";
+const darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-const translationDiv            = document.createElement("div");
-translationDiv.id               = "translation";
-translationDiv.style.fontSize   = "1.5em";
-translationDiv.style.padding    = "10px";
-translationDiv.style.background = "#eee";
-translationDiv.style.overflowY  = "scroll";
-translationDiv.style.height     = "20ex";
+const counterDiv = document.createElement("div");
+counterDiv.id = "totalAmount";
+counterDiv.style.color = darkMode ? "white" : "gray";
+counterDiv.style.background = darkMode ? "#212121" : "#fff";
+counterDiv.style.paddingTop = "5px";
+counterDiv.style.paddingLeft = "5px";
+counterDiv.innerHTML = "¥0 (¥0)";
+
+const translationDiv = document.createElement("div");
+translationDiv.id = "translation";
+translationDiv.style.fontSize = "1.5em";
+translationDiv.style.padding = "10px";
+translationDiv.style.color = darkMode ? "white" : "gray";
+translationDiv.style.background = darkMode ? "#212121" : "#eee";
+translationDiv.style.overflowY = "scroll";
+translationDiv.style.height = "20ex";
 
 const callback = function(mutationsList) {
 	mutationsList.forEach((mutation) => {
@@ -308,7 +311,7 @@ const callback = function(mutationsList) {
 			if(messageNode != null) {
 				// Replace emoji images
 				let emojiList = messageNode.getElementsByClassName("emoji");
-				let index     = emojiList.length - 1;
+				let index = emojiList.length - 1;
 				while(index >= 0) {
 					const emoji = emojiList.item(index);
 					if(emoji.src.endsWith(".svg")) { emoji.replaceWith(emoji.alt); }
@@ -319,9 +322,9 @@ const callback = function(mutationsList) {
 				if(!author)
 					return; // System notices also use the #message ID. This is why ID duplication is bad.
 				const isModerator = author.classList.contains("moderator");
-				const isOwner     = author.classList.contains("owner");
-				const isSpecial   = specialNames.has(author.textContent);
-				const text        = messageNode.textContent;
+				const isOwner = author.classList.contains("owner");
+				const isSpecial = specialNames.has(author.textContent);
+				const text = messageNode.textContent;
 				let match =
 				  /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):\}-]+/iu.test(
 				    text);
@@ -339,7 +342,7 @@ const callback = function(mutationsList) {
 				  node.querySelector("#purchase-amount"); // See footnote 1
 				if(purchaseNode != null) {
 					const jpy = toYen(purchaseNode.textContent);
-					total     = total + jpy;
+					total = total + jpy;
 					counterDiv.innerHTML =
 					  "¥" + Math.trunc(total) + " (¥" + Math.trunc(total * 0.315) + ")";
 					superchats.push(new SuperChat(author.textContent.trim(),
@@ -358,8 +361,8 @@ const observer = new MutationObserver(callback);
 // Consequently, we have to keep polling for them until they are loaded.
 const loadguard = setInterval(function() {
 	const chatframe = document.getElementById("chatframe");
-	let messages    = chatframe?.contentDocument?.querySelector(
-    "div#items.yt-live-chat-item-list-renderer");
+	let messages = chatframe?.contentDocument?.querySelector(
+	  "div#items.yt-live-chat-item-list-renderer");
 	if(!messages) { return; }
 
 	clearInterval(loadguard);
