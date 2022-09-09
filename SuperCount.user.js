@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.5
+// @version      0.10.6
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
