@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SuperCount
 // @namespace    http://tampermonkey.net/
-// @version      0.10.6
+// @version      0.11.0
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/SuperCount.user.js
 // @description  Counts YouTube Super Chat amounts
 // @author       Chris MacLeod
@@ -361,25 +361,35 @@ const observer = new MutationObserver(callback);
 // Consequently, we have to keep polling for them until they are loaded.
 const loadguard = setInterval(function() {
 	const chatframe = document.getElementById("chatframe");
-	let messages = chatframe?.contentDocument?.querySelector(
-	  "div#items.yt-live-chat-item-list-renderer");
-	if(!messages) { return; }
+	const doc = chatframe?.contentDocument;
+	if(!doc) { return; }
+
+	const chatOption = doc.querySelectorAll("tp-yt-paper-listbox > a")[1];
+	if(!chatOption) { return; }
+	chatOption.click();
 
 	clearInterval(loadguard);
 
-	const primary = document.getElementById("primary-inner");
-	primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
+	const messageGuard = setInterval(function() {
+		let messages =
+		  doc.querySelector("div#items.yt-live-chat-item-list-renderer");
+		if(!messages) { return; }
 
-	const chat = document.getElementById("chat");
-	chat.insertBefore(counterDiv, chat.firstChild);
-	chat.append(superchatSaveButton);
+		clearInterval(messageGuard);
 
-	observer.observe(messages, {childList : true});
-	chatframe.addEventListener("load", function() {
-		messages = chatframe?.contentDocument?.querySelector(
-		  "div#items.yt-live-chat-item-list-renderer");
+		const primary = document.getElementById("primary-inner");
+		primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
+
+		const chat = document.getElementById("chat");
+		chat.insertBefore(counterDiv, chat.firstChild);
+		chat.append(superchatSaveButton);
+
 		observer.observe(messages, {childList : true});
-	});
+		chatframe.addEventListener("load", function() {
+			messages = doc.querySelector("div#items.yt-live-chat-item-list-renderer");
+			observer.observe(messages, {childList : true});
+		});
+	}, 1000);
 }, 100);
 })();
 
