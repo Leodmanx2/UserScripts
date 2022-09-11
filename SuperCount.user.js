@@ -370,6 +370,10 @@ const loadguard = setInterval(function() {
 
 	clearInterval(loadguard);
 
+	// The second load check is to prevent the mutation observer from
+	// observing the old "Top chat" message list, which should be removed
+	// and will no longer update. This gives YouTube at least a second
+	// to process the click and replace div#items before we attach to it.
 	const messageGuard = setInterval(function() {
 		let messages =
 		  doc.querySelector("div#items.yt-live-chat-item-list-renderer");
