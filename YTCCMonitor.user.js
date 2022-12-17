@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YTCCMonitor
 // @namespace    http://tampermonkey.net/
-// @version      0.12.0
+// @version      0.12.1
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/YTCCMonitor.user.js
 // @description  Extracts viewer-provided English-language translations or captions to a space below the video
 // @author       Chris MacLeod
@@ -36,17 +36,18 @@ const extractCaptions =
 	  if(!messageNode) { return; }
 
 	  const author = node.querySelector("#author-name");
-	  if(!author)
-		  return; // System notices also use the #message ID. This is why ID duplication is bad.
+	  // System notices also use the #message ID, so we make another check
+	  // to see if this is actually a chat message.
+	  // This is why ID duplication is bad.
+	  if(!author) { return; }
 
 	  const isModerator = author.classList.contains("moderator");
 	  const isOwner = author.classList.contains("owner");
-	  const isSpecial = specialNames.has(author.textContent);
 	  const isTranslation =
 	    /^[\[\(\{]?(英訳[\\/ ])?ENG?([\\/ ]英訳)?[\]\):\}-]+/iu.test(
 	      messageNode.textContent);
 
-	  if(isTranslation || isModerator || isOwner || isSpecial) {
+	  if(isTranslation || isModerator || isOwner) {
 		  const paragraph = document.createElement("p");
 		  paragraph.innerHTML =
 		    `${messageNode.innerHTML} <span style="color:grey;font-size:0.75em">(${
