@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YTCCMonitor
 // @namespace    http://tampermonkey.net/
-// @version      0.12.1
+// @version      0.12.2
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/YTCCMonitor.user.js
 // @description  Extracts viewer-provided English-language translations or captions to a space below the video
 // @author       Chris MacLeod
@@ -74,9 +74,9 @@ const checkForChat = () => {
 	let liveChatOption =
 	  frameDocument.querySelectorAll("tp-yt-paper-listbox > a")[1];
 	if(liveChatOption) {
-		if(!liveChatOption.clicked) {
+		if(!frameDocument.liveChat) {
 			liveChatOption.click();
-			liveChatOption.clicked = true;
+			frameDocument.liveChat = true;
 		}
 	}
 
@@ -93,7 +93,7 @@ const checkForChat = () => {
 	// Attach the translation div
 	const primary = document.getElementById("primary-inner");
 	if(primary) {
-		if(primary.firstElementChild != translationDiv) {
+		if(primary.firstElementChild.nextSibling != translationDiv) {
 			primary.insertBefore(translationDiv,
 			                     primary.firstElementChild.nextSibling);
 		}
