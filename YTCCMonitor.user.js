@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         YTCCMonitor
 // @namespace    http://tampermonkey.net/
-// @version      0.12.2
+// @version      0.12.3
 // @downloadURL  https://bitbucket.org/leodmanx2/userscripts/raw/HEAD/YTCCMonitor.user.js
 // @description  Extracts viewer-provided English-language translations or captions to a space below the video
 // @author       Chris MacLeod
@@ -29,6 +29,12 @@ translationDiv.style.color = darkMode ? "white" : "gray";
 translationDiv.style.background = darkMode ? "#212121" : "#eee";
 translationDiv.style.overflowY = "scroll";
 translationDiv.style.height = "20ex";
+
+// YouTube replaces emoji characters with SVGs that will be huge unless given an appropriate scale
+const style = document.createElement("style");
+document.head.appendChild(style);
+style.sheet.insertRule(
+  `div#translation img.emoji {max-height: ${translationDiv.style.fontSize};}`);
 
 const extractCaptions =
   (node) => {
