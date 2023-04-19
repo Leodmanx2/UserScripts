@@ -1,3 +1,21 @@
+// ISC License
+//
+// Copyright 2020 Chris MacLeod
+//
+// Permission to use, copy, modify, and/or distribute this software
+// for any purpose with or without fee is hereby granted, provided
+// that the above copyright notice and this permission notice appear
+// in all copies.
+//
+// THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+// WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+// WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+// AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR
+// CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+// LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+// NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN
+// CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+
 // ==UserScript==
 // @name         YT-FanCaptions
 // @namespace    https://chris-macleod.ca/
@@ -40,56 +58,47 @@ translationDiv.style.height = "10ex";
 // TODO: Monitor for elements being removed and re-insterted due to responsive
 // layout changes
 const loadguard = setInterval(function() {
-  const frame = document.getElementById("chatframe");
-  if (!frame) {
-    return;
-  }
+	const frame = document.getElementById("chatframe");
+	if(!frame) { return; }
 
-  const primary = document.getElementById("primary-inner");
-  if (!primary) {
-    return;
-  }
+	const primary = document.getElementById("primary-inner");
+	if(!primary) { return; }
 
-  clearInterval(loadguard);
+	clearInterval(loadguard);
 
-  primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
+	primary.insertBefore(translationDiv, primary.firstElementChild.nextSibling);
 
-  const oldFetch = frame.contentWindow.fetch;
-  frame.contentWindow.fetch = async (...args) => {
-    const url = args[0].url || args[0];
-    const result = await oldFetch(...args);
-    if (url.startsWith(
-            'https://www.youtube.com/youtubei/v1/live_chat/get_live_chat')) {
-      const clone = await result.clone();
-      const json = await clone.json();
-      const actions = json.continuationContents.liveChatContinuation.actions;
-      actions.forEach(action => {
-        const item =
-            (action.addChatItemAction ||
-             action.replayChatItemAction?.actions[0]?.addChatItemAction)
-                ?.item;
-        if (!item) {
-          return;
-        }
+	const oldFetch = frame.contentWindow.fetch;
+	frame.contentWindow.fetch = async (...args) => {
+		const url = args[0].url || args[0];
+		const result = await oldFetch(...args);
+		if(url.startsWith(
+		     "https://www.youtube.com/youtubei/v1/live_chat/get_live_chat")) {
+			const clone = await result.clone();
+			const json = await clone.json();
+			const actions = json.continuationContents.liveChatContinuation.actions;
+			actions.forEach(action => {
+				const item =
+				  (action.addChatItemAction ||
+				   action.replayChatItemAction?.actions[0]?.addChatItemAction)
+				    ?.item;
+				if(!item) { return; }
 
-        let text = "";
-        item.liveChatTextMessageRenderer.message.runs.forEach(run => {
-          if (run.text) {
-            text += run.text;
-          }
-        });
+				let text = "";
+				item.liveChatTextMessageRenderer.message.runs.forEach(run => {
+					if(run.text) { text += run.text; }
+				});
 
-        let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
-        if (match) {
-          const paragraph = document.createElement("p");
-          paragraph.textContent = text;
-          translationDiv.insertBefore(paragraph,
-                                      translationDiv.firstElementChild);
-        }
-      });
-    }
-    return result;
-  }
+				let match = /^[\[\(]?(英訳\/)?ENG?[\]\):\-\}]+/i.test(text);
+				if(match) {
+					const paragraph = document.createElement("p");
+					paragraph.textContent = text;
+					translationDiv.insertBefore(paragraph,
+					                            translationDiv.firstElementChild);
+				}
+			});
+		}
+		return result;
+	}
 }, 100);
-
 })();
